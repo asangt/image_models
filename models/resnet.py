@@ -62,8 +62,6 @@ class ResBlock(nn.Module):
             )
         else:
             raise ValueError('Block composition should be either `original`, `bn post-addition`, `activation pre-addition`, `full pre-activation` or `partial pre-activation`.')
-        
-        self.act = nn.Identity() if self.act is None else self.act
             
         if not downsampling and shortcut != 'full projection':
             self.shortcut = nn.Identity()
@@ -150,8 +148,6 @@ class BottleneckBlock(nn.Module):
             )
         else:
             raise ValueError('Block composition should be either `original`, `bn post-addition`, `activation pre-addition`, `full pre-activation` or `partial pre-activation`.')
-        
-        self.act = nn.Identity() if self.act is None else self.act
         
         if shortcut == 'projection' or shortcut == 'full projection':
             self.shortcut = nn.Sequential(
