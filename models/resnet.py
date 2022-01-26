@@ -200,33 +200,34 @@ class ResNet(nn.Module):
         if block_shortcut not in ['projection', 'full projection', 'zero-pad']:
             raise ValueError('Block shortcut should be either `projection`, `full projection` or `zero-pad`.')
         
-        block = ResBlock if block_type == 'resblock' else BottleneckBlock
+        _block = ResBlock if block_type == 'resblock' else BottleneckBlock
         
         self.conv1 = _conv2d_bn_act(activation=self._activation, in_channels=n_channels, out_channels=64, kernel_size=7, stride=2, padding=3)
         
         self.conv2_x = nn.Sequential(
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
-            *[block(64, 64, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[0])]
+            _block(64, 64, False, block_shortcut, self._activation, block_composition),
+            *[_block(64 * _block._expansion, 64, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[0] - 1)]
         )
         
         self.conv3_x = nn.Sequential(
-            block(64, 128, True, block_shortcut, self._activation, block_composition),
-            *[block(128, 128, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[1] - 1)]
+            _block(64 * _block._expansion, 128, True, block_shortcut, self._activation, block_composition),
+            *[_block(128 * _block._expansion, 128, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[1] - 1)]
         )
         
         self.conv4_x = nn.Sequential(
-            block(128, 256, True, block_shortcut, self._activation, block_composition),
-            *[block(256, 256, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[2] - 1)]
+            _block(128 * _block._expansion, 256, True, block_shortcut, self._activation, block_composition),
+            *[_block(256 * _block._expansion, 256, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[2] - 1)]
         )
         
         self.conv5_x = nn.Sequential(
-            block(256, 512, True, block_shortcut, self._activation, block_composition),
-            *[block(512, 512, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[3] - 1)]
+            _block(256 * _block._expansion, 512, True, block_shortcut, self._activation, block_composition),
+            *[_block(512 * _block._expansion, 512, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[3] - 1)]
         )
         
         self.avg_pool = nn.AvgPool2d(kernel_size=7, stride=1)
         
-        self.fc_out = nn.Linear(512 * block._expansion, n_classes)
+        self.fc_out = nn.Linear(512 * _block._expansion, n_classes)
         
     
     def forward(self, x):
@@ -238,7 +239,7 @@ class ResNet(nn.Module):
         x = self.conv5_x(x)
         
         # classificator
-        x = self.avg_pool(x).view(-1, 512)
+        x = self.avg_pool(x).squeeze()
         x = self.fc_out(x)
         
         return x
