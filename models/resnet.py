@@ -220,6 +220,14 @@ class ResNet(nn.Module):
             _block(256 * _block._expansion, 512, True, block_shortcut, self._activation, block_composition),
             *[_block(512 * _block._expansion, 512, False, block_shortcut, self._activation, block_composition) for i in range(model_structure[3] - 1)]
         )
+
+        self.feature_extractor = nn.Sequential(
+            self.conv1,
+            self.conv2_x,
+            self.conv3_x,
+            self.conv4_x,
+            self.conv5_x
+        )
         
         self.avg_pool = nn.AvgPool2d(kernel_size=7, stride=1)
         
@@ -228,11 +236,7 @@ class ResNet(nn.Module):
     
     def forward(self, x):
         # feature extraction
-        x = self.conv1(x)
-        x = self.conv2_x(x)
-        x = self.conv3_x(x)
-        x = self.conv4_x(x)
-        x = self.conv5_x(x)
+        x = self.feature_extractor(x)
         
         # classificator
         x = self.avg_pool(x).squeeze()
