@@ -182,7 +182,7 @@ class BottleneckBlock(nn.Module):
         return out
 
 class ResNet(nn.Module):
-    def __init__(self, n_classes, n_channels=3, model_structure=[2, 2, 2, 2], block_type='resblock', block_composition='original', block_shortcut='projection'):
+    def __init__(self, n_classes, n_channels, model_structure, block_type='resblock', block_composition='original', block_shortcut='projection'):
         super(ResNet, self).__init__()
         
         self._activation = 'relu'
