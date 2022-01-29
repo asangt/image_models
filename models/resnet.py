@@ -1,20 +1,7 @@
 import torch.nn as nn
 
-from .common import _get_activation, ZeroPadShortcut
+from .common import _get_activation, _conv2d_bn_act, ZeroPadShortcut
 
-def _conv2d_bn_act(mode='standard', activation='relu', batch_norm=True, **kwargs):
-    if mode == 'standard':
-        return nn.Sequential(
-            nn.Conv2d(**kwargs),
-            nn.BatchNorm2d(kwargs['out_channels']) if batch_norm else nn.Identity(),
-            _get_activation(activation)
-        )
-    elif mode == 'pre-act':
-        return nn.Sequential(
-            nn.BatchNorm2d(kwargs['in_channels']) if batch_norm else nn.Identity(),
-            _get_activation(activation),
-            nn.Conv2d(**kwargs)
-        )
 
 class ResBlock(nn.Module):
     _expansion = 1
@@ -66,10 +53,7 @@ class ResBlock(nn.Module):
         if not downsampling and shortcut != 'full projection':
             self.shortcut = nn.Identity()
         elif shortcut == 'projection' or shortcut == 'full projection':
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=self._stride, bias=False),
-                nn.BatchNorm2d(out_channels)
-            )
+            self.shortcut = _conv2d_bn_act(activation=None, in_channels=in_channels, out_channels=out_channels, kernel_size=1, stride=self._stride, bias=False)
         elif shortcut == 'zero-pad':
             self.shortcut = ZeroPadShortcut(in_channels, stride=self._stride)
         else:
@@ -92,10 +76,13 @@ class ResBlock(nn.Module):
                 nn.init.constant_(m.bias, 0)
         
     def forward(self, x):
-        out = self.block(x)
-        out = self.act(out + self.shortcut(x))
+        identity = self.shortcut(x)
         
-        return out
+        x = self.block(x)
+        x = self.act(x + identity)
+        
+        return x
+
 
 class BottleneckBlock(nn.Module):
     _expansion = 4
@@ -176,10 +163,13 @@ class BottleneckBlock(nn.Module):
                 nn.init.constant_(m.bias, 0)
     
     def forward(self, x):
-        out = self.block(x)
-        out = self.act(out + self.shortcut(x))
+        identity = self.shortcut(x)
         
-        return out
+        x = self.block(x)
+        x = self.act(x + identity)
+        
+        return x
+
 
 class ResNet(nn.Module):
     def __init__(self, n_classes, n_channels, model_structure, block_type='resblock', block_composition='original', block_shortcut='projection'):
@@ -244,7 +234,9 @@ class ResNet(nn.Module):
         
         return x
 
+
 # Convenient wrappers for the most common ResNet architectures introduced in the original paper
+
 
 def _build_resnet(model_name, n_classes, n_channels, block_type, block_composition, block_shortcut):
     model_names = {
@@ -258,17 +250,22 @@ def _build_resnet(model_name, n_classes, n_channels, block_type, block_compositi
 
     return ResNet(n_classes, n_channels, model_structure, block_type, block_composition, block_shortcut)
 
+
 def resnet18(n_classes, n_channels, block_composition='original', block_shortcut='projection'):
     return _build_resnet('resnet18', n_classes, n_channels, 'resblock', block_composition, block_shortcut)
+
 
 def resnet34(n_classes, n_channels, block_composition='original', block_shortcut='projection'):
     return _build_resnet('resnet34', n_classes, n_channels, 'resblock', block_composition, block_shortcut)
 
+
 def resnet50(n_classes, n_channels, block_composition='original', block_shortcut='projection'):
     return _build_resnet('resnet50', n_classes, n_channels, 'bottleneck', block_composition, block_shortcut)
 
+
 def resnet101(n_classes, n_channels, block_composition='original', block_shortcut='projection'):
     return _build_resnet('resnet101', n_classes, n_channels, 'bottleneck', block_composition, block_shortcut)
+
 
 def resnet152(n_classes, n_channels, block_composition='original', block_shortcut='projection'):
     return _build_resnet('resnet152', n_classes, n_channels, 'bottleneck', block_composition, block_shortcut)
