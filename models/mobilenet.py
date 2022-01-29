@@ -75,7 +75,6 @@ class MobileNetV2(nn.Module):
         x = self.feature_extractor(x)
         
         # classification
-        print(x.size())
         x = self.avg_pool(x).squeeze()
         x = self.fc_out(x)
         
