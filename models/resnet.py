@@ -228,7 +228,7 @@ class ResNet(nn.Module):
         # feature extraction
         x = self.feature_extractor(x)
         
-        # classificator
+        # classification
         x = self.avg_pool(x).squeeze()
         x = self.fc_out(x)
         
