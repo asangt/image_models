@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from models.common import _conv2d_bn_act
+from .common import _conv2d_bn_act
 
 
 class ReLU6(nn.Module):
