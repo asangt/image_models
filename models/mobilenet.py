@@ -8,7 +8,6 @@ class ReLU6(nn.Module):
     
     def __init__(self):
         super(ReLU6, self).__init__()
-        pass
     
     def forward(self, x):
         return torch.minimum( torch.maximum(0, x), 6 )
