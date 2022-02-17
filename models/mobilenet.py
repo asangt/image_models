@@ -4,15 +4,6 @@ import torch.nn as nn
 from .common import _conv2d_bn_act
 
 
-class ReLU6(nn.Module):
-    
-    def __init__(self):
-        super(ReLU6, self).__init__()
-    
-    def forward(self, x):
-        return torch.minimum( torch.maximum(0, x), 6 )
-
-
 class MBConv(nn.Module):
     
     def __init__(self, in_channels, out_channels, downsampling=False, expansion=1):

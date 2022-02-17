@@ -5,6 +5,15 @@ import torch.nn.functional as F
 from .mobilenet import ReLU6
 
 
+class ReLU6(nn.Module):
+    
+    def __init__(self):
+        super(ReLU6, self).__init__()
+    
+    def forward(self, x):
+        return torch.minimum( torch.maximum(0, x), 6 )
+
+
 def _get_activation(activation='relu'):
     if activation == 'relu':
         return nn.ReLU()
