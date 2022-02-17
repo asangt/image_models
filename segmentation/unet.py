@@ -1,20 +1,18 @@
 import torch
 import torch.nn as nn
 
-from .common import _get_activation
 
-
-def _conv3x3_act(in_channels, out_channels, padding=1, activation='relu'):
+def _conv3x3_act(in_channels, out_channels, padding=1):
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, 3, padding=padding),
-        _get_activation(activation)
+        nn.ReLU()
     )
 
 
-def _deconv2x2_act(in_channels, out_channels, activation='relu'):
+def _deconv2x2_act(in_channels, out_channels):
     return nn.Sequential(
         nn.ConvTranspose2d(in_channels, out_channels, 2, stride=2),
-        _get_activation(activation)
+        nn.ReLU()
     )
 
 
