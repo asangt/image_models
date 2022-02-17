@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from models.common import _get_activation
+from .common import _get_activation
 
 
 def _conv3x3_act(in_channels, out_channels, padding=1, activation='relu'):
